@@ -2,7 +2,9 @@ package com.aria.morsexpress.presentation.screen.imageinput
 
 import android.app.Activity
 import android.graphics.BitmapFactory
+import android.icu.text.SimpleDateFormat
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -21,6 +23,61 @@ import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import java.io.InputStream
+import java.io.OutputStream
+import java.util.Date
+import java.util.Locale
+
+fun String.toMorse(): String {
+    val morseMap = mapOf(
+        // Letters
+        'A' to ".-", 'B' to "-...", 'C' to "-.-.", 'D' to "-..", 'E' to ".",
+        'F' to "..-.", 'G' to "--.", 'H' to "....", 'I' to "..", 'J' to ".---",
+        'K' to "-.-", 'L' to ".-..", 'M' to "--", 'N' to "-.", 'Ñ' to "--.--",
+        'O' to "---", 'P' to ".--.", 'Q' to "--.-", 'R' to ".-.", 'S' to "...",
+        'T' to "-", 'U' to "..-", 'V' to "...-", 'W' to ".--", 'X' to "-..-",
+        'Y' to "-.--", 'Z' to "--..",
+        // Numbers
+        '0' to "-----", '1' to ".----", '2' to "..---", '3' to "...--", '4' to "....-",
+        '5' to ".....", '6' to "-....", '7' to "--...", '8' to "---..", '9' to "----.",
+        // Spaces
+        ' ' to "/", '\n' to "\n",
+        // Punctuation
+        '.' to ".-.-.-", ',' to "--..--", '?' to "..--..", '\'' to ".----.",
+        '!' to "-.-.--", '/' to "-..-.", '(' to "-.--.", ')' to "-.--.-",
+        '&' to ".-...", ':' to "---...", ';' to "-.-.-.", '=' to "-...-",
+        '+' to ".-.-.", '-' to "-....-", '_' to "..--.-", '"' to ".-..-.",
+        '$' to "...-..-", '@' to ".--.-.",
+        // Latin Accents
+        'Á' to ".-.-", 'É' to "..-..", 'Í' to "..--", 'Ó' to "---.", 'Ú' to "..-"
+    )
+    return this.uppercase().map { morseMap[it] ?: "" }.joinToString(" ")
+}
+
+fun String.toText(): String {
+    val reverseMap = mapOf(
+        // Letters
+        ".-" to 'A', "-..." to 'B', "-.-." to 'C', "-.." to 'D', "." to 'E',
+        "..-." to 'F', "--." to 'G', "...." to 'H', ".." to 'I', ".---" to 'J',
+        "-.-" to 'K', ".-.." to 'L', "--" to 'M', "-." to 'N', "--.--" to 'Ñ',
+        "---" to 'O', ".--." to 'P', "--.-" to 'Q', ".-." to 'R', "..." to 'S',
+        "-" to 'T', "..-" to 'U', "...-" to 'V', ".--" to 'W', "-..-" to 'X',
+        "-.--" to 'Y', "--.." to 'Z',
+        // Numbers
+        "-----" to '0', ".----" to '1', "..---" to '2', "...--" to '3', "....-" to '4',
+        "....." to '5', "-...." to '6', "--..." to '7', "---.." to '8', "----." to '9',
+        // Space
+        "/" to ' ', "\n" to '\n',
+        // Punctuation
+        ".-.-.-" to '.', "--..--" to ',', "..--.." to '?', ".----." to '\'',
+        "-.-.--" to '!', "-..-." to '/', "-.--." to '(', "-.--.-" to ')',
+        ".-..." to '&', "---..." to ':', "-.-.-." to ';', "-...-" to '=',
+        ".-.-." to '+', "-....-" to '-', "..--.-" to '_', ".-..-." to '"',
+        "...-..-" to '$', ".--.-." to '@',
+        // Latin Accents
+        "-.---" to 'Á', "..-.." to 'É', "..---" to 'Í', "---." to 'Ó', "..-" to 'Ú'
+    )
+    return this.trim().split(" ").map { reverseMap[it] ?: '?'}.joinToString("")
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,10 +85,29 @@ fun ImageInputScreen(navController: NavController) {
     val context = LocalContext.current
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var recognizedText by remember { mutableStateOf<String?>(null) }
+    var recognizedMorse by remember { mutableStateOf<String?>(null) }
+    var morseResult by remember { mutableStateOf<String?>(null) }
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument(),
         onResult = { uri -> uri?.let { imageUri = it } }
+    )
+
+    val createFileLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("text/plain"),
+        onResult = { uri: Uri? ->
+            uri?.let {
+                try {
+                    val outputStream: OutputStream? = context.contentResolver.openOutputStream(it)
+                    outputStream?.bufferedWriter()?.use { writer ->
+                        writer.write("Texto original:\n$recognizedText\n\nCódigo Morse:\n$morseResult")
+                    }
+                    Toast.makeText(context, "Archivo exportado", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    Toast.makeText(context, "Error al exportar archivo", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     )
 
     val cameraLauncher = rememberLauncherForActivityResult(
@@ -54,6 +130,7 @@ fun ImageInputScreen(navController: NavController) {
                 recognizer.process(inputImage)
                     .addOnSuccessListener { visionText ->
                         recognizedText = visionText.text
+                        morseResult = null // Reset Morse result
                     }
                     .addOnFailureListener {
                         recognizedText = "Error al procesar la imagen."
@@ -110,6 +187,44 @@ fun ImageInputScreen(navController: NavController) {
                 Text("Texto reconocido:", style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(it)
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(onClick = {
+                    morseResult = it.toMorse()
+                }) {
+                    Text("Convertir a Morse")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            recognizedMorse?.let {
+                Text("Texto reconocido en Morse:", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(it)
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(onClick = {
+                    morseResult = it.toText()
+                }) {
+                    Text("Convertir a Texto")
+                }
+            }
+
+            morseResult?.let {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text("Resultado en Morse:", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(it)
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(onClick = {
+                    val date = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+                    createFileLauncher.launch("morse_$date.txt")
+                }) {
+                    Text("Exportar como .txt")
+                }
             }
         }
     }
