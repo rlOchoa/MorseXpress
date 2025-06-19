@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import com.aria.morsexpress.data.local.dao.TranslationDao
 import com.aria.morsexpress.data.local.entity.TranslationEntity
 
-@Database(entities = [TranslationEntity::class], version = 1, exportSchema = false)
+@Database(entities = [TranslationEntity::class], version = 1)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun translationDao(): TranslationDao
 

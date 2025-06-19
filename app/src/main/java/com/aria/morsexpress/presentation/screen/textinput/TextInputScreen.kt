@@ -1,5 +1,6 @@
 package com.aria.morsexpress.presentation.screen.textinput
 
+import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -12,14 +13,27 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aria.morsexpress.presentation.viewmodel.TranslationViewModel
+import com.aria.morsexpress.presentation.viewmodel.TranslationViewModelFactory
+import androidx.compose.ui.platform.LocalContext
+import com.aria.morsexpress.data.local.database.AppDatabase
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TextInputScreen(navController: NavController) {
+fun TextInputScreen(
+    navController: NavController,
+    context: Context = LocalContext.current
+) {
+    val db = remember { AppDatabase.getInstance(context) }
+    val dao = remember { db.translationDao() }
+
+    val viewModel: TranslationViewModel = viewModel(
+        factory = TranslationViewModelFactory(dao)
+    )
+
     var inputText by remember { mutableStateOf(TextFieldValue("")) }
     var isMorseToText by remember { mutableStateOf(false) }
     var outputText by remember { mutableStateOf("") }
-    val viewModel: TranslationViewModel = viewModel()
 
     fun convertTextToMorse(text: String): String {
         val morseMap = mapOf(
