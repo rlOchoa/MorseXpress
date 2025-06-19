@@ -42,9 +42,6 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.14"
     }
-    packaging {
-        resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
-    }
     kapt {
         correctErrorTypes = true
         arguments {
@@ -55,17 +52,77 @@ android {
             arg("room.verifySchema", "false")
         }
     }
+    packaging {
+        resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
+    }
 }
 
 dependencies {
+    // Core Android
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
-    implementation(platform(libs.androidx.compose.bom))
+
+    // Compose UI
     implementation(libs.androidx.ui)
+    implementation(libs.androidx.material3)
+    implementation(libs.navigation.compose)
+//    implementation(libs.navigation.compose)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.material3)
+    implementation(platform(libs.androidx.compose.bom))
+
+    // Room + Hilt compatibility
+    implementation("androidx.room:room-runtime:2.7.2")
+    implementation("androidx.room:room-ktx:2.7.2")
+    kapt("androidx.room:room-compiler:2.7.2")
+    implementation("com.google.dagger:hilt-android:2.50")
+    kapt("com.google.dagger:hilt-compiler:2.50")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+
+    // ML Kit (OCR)
+    implementation(libs.text.recognition)
+
+    // CameraX
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
+
+    // Lifecycle y ViewModel
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+
+    // Media3 Extractor
+    implementation(libs.androidx.media3.extractor)
+
+    // Coroutines
+    implementation(libs.kotlinx.coroutines.android)
+
+    // SharedPreferences
+    implementation(libs.androidx.preference.ktx)
+
+    // Jetpack Compose UI Core
+    implementation(libs.ui)
+    implementation(libs.ui.tooling.preview)
+    debugImplementation(libs.ui.tooling)
+
+    // Material 3
+    implementation(libs.material3)
+
+    // Icons (necesarios para 'Icons.Default.*')
+    implementation(libs.androidx.material.icons.extended)
+
+    // Guava
+    implementation(libs.guava)
+
+    // Java Poet
+    implementation("com.squareup:javapoet:1.13.0")
+
+    // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -73,58 +130,4 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-
-
-// Lifecycle y ViewModel
-    implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation(libs.androidx.lifecycle.runtime.compose)
-
-// Navigation Compose
-    implementation(libs.navigation.compose)
-
-// ML Kit (OCR)
-    implementation(libs.text.recognition)
-
-// Media3 Extractor
-    implementation(libs.androidx.media3.extractor)
-
-// Coroutines
-    implementation(libs.kotlinx.coroutines.android)
-
-// SharedPreferences
-    implementation(libs.androidx.preference.ktx)
-
-// Jetpack Compose UI Core
-    implementation(libs.ui)
-    implementation(libs.ui.tooling.preview)
-    debugImplementation(libs.ui.tooling)
-
-// Material 3
-    implementation(libs.material3)
-
-// Icons (necesarios para 'Icons.Default.*')
-    implementation(libs.androidx.material.icons.extended)
-
-// Navigation
-    implementation(libs.navigation.compose)
-
-// Camera
-    implementation(libs.androidx.camera.camera2)
-    implementation(libs.androidx.camera.lifecycle)
-    implementation(libs.androidx.camera.view)
-    implementation(libs.androidx.camera.core)
-
-    implementation(libs.guava)
-
-// Hilt
-    implementation("com.google.dagger:hilt-android:2.56.2")
-    kapt("com.google.dagger:hilt-compiler:2.56.2")
-
-// Room + Hilt compatibility
-    implementation("androidx.room:room-runtime:2.7.2")
-    kapt("androidx.room:room-compiler:2.7.2")
-    implementation("androidx.room:room-ktx:2.7.2")
-
-// Hilt para ViewModel
-    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 }
