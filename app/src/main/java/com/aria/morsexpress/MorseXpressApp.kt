@@ -4,9 +4,7 @@ import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.compose.runtime.mutableStateOf
-import dagger.hilt.android.HiltAndroidApp
 
-@HiltAndroidApp
 class MorseXpressApp : Application() {
 
     companion object {

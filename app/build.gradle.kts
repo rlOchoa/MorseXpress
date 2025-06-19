@@ -3,8 +3,6 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.kapt")
-    id("kotlin-kapt")
-    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -27,6 +25,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
@@ -41,19 +40,6 @@ android {
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.14"
-    }
-    kapt {
-        correctErrorTypes = true
-        arguments {
-            arg("room.schemaLocation", "$projectDir/schemas")
-            arg("room.incremental", "true")
-            arg("room.expandProjection", "true")
-            arg("room.disableSchemaVerification", "true")
-            arg("room.verifySchema", "false")
-        }
-    }
-    packaging {
-        resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
     }
 }
 
@@ -72,16 +58,13 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(platform(libs.androidx.compose.bom))
 
-    // Room + Hilt compatibility
-    implementation("androidx.room:room-runtime:2.7.2")
-    implementation("androidx.room:room-ktx:2.7.2")
-    kapt("androidx.room:room-compiler:2.7.2")
-    implementation("com.google.dagger:hilt-android:2.50")
-    kapt("com.google.dagger:hilt-compiler:2.50")
-    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    // Room compatibility
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    kapt(libs.androidx.room.compiler)
 
     // Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+    implementation(libs.kotlinx.coroutines.android)
 
     // ML Kit (OCR)
     implementation(libs.text.recognition)
@@ -118,9 +101,6 @@ dependencies {
 
     // Guava
     implementation(libs.guava)
-
-    // Java Poet
-    implementation("com.squareup:javapoet:1.13.0")
 
     // Testing
     testImplementation(libs.junit)

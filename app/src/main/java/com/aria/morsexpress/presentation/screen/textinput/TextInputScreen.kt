@@ -12,7 +12,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aria.morsexpress.presentation.viewmodel.TranslationViewModel
-import androidx.hilt.navigation.compose.hiltViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -20,7 +19,7 @@ fun TextInputScreen(navController: NavController) {
     var inputText by remember { mutableStateOf(TextFieldValue("")) }
     var isMorseToText by remember { mutableStateOf(false) }
     var outputText by remember { mutableStateOf("") }
-    val viewModel: TranslationViewModel = hiltViewModel()
+    val viewModel: TranslationViewModel = viewModel()
 
     fun convertTextToMorse(text: String): String {
         val morseMap = mapOf(
