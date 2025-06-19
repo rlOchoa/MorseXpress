@@ -13,13 +13,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.aria.morsexpress.R
 import com.aria.morsexpress.presentation.navigation.Routes
+import com.aria.morsexpress.presentation.screen.imageinput.AnimatedSectionTitle
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController) {
     Scaffold(
-        topBar = { TopAppBar(title = { Text("MorseXpress") }) },
+        topBar = { AnimatedSectionTitle(
+            iconRes = R.drawable.ic_morse,
+            title = "MorseXpress",
+            iconRes2 = R.drawable.ic_morse
+        ) },
         bottomBar = {
             BottomAppBar {
                 // Area de Historial
@@ -77,28 +84,15 @@ fun HomeScreen(navController: NavController) {
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Image Input
-                    Button(
-                        onClick = { navController.navigate(Routes.IMAGE_INPUT) },
-                        colors = transparentColors,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon(Icons.Default.Image, contentDescription = "Imagen")
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Entrada por Imagen")
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
                     // Camera Input
                     Button(
-                        onClick = { navController.navigate(Routes.CAMERA_INPUT) },
+                        onClick = { navController.navigate(Routes.CAMERA_CAPTURE) },
                         colors = transparentColors,
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Icon(Icons.Default.Camera, contentDescription = "Cámara")
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Entrada por Cámara")
+                        Text("Entrada por Imagen o Cámara")
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))

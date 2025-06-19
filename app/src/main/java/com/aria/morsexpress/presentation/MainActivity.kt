@@ -16,8 +16,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.rememberNavController
 import com.aria.morsexpress.presentation.navigation.MorseXpressNavGraph
+import com.aria.morsexpress.presentation.screen.imageinput.AnimatedOptionCard
 import com.aria.morsexpress.presentation.theme.MorseXpressTheme
 import kotlinx.coroutines.launch
+import com.aria.morsexpress.R
 
 class MainActivity : ComponentActivity() {
 
@@ -45,7 +47,7 @@ class MainActivity : ComponentActivity() {
                 val menuItems = listOf(
                     Triple("Inicio", "home", Icons.Default.Home),
                     Triple("Texto", "text_input", Icons.Default.Edit),
-                    Triple("Imagen", "image_input", Icons.Default.Image),
+                    Triple("Imagen o Cámara", "camera_capture_screen", Icons.Default.Camera),
                     Triple("Audio", "audio_input", Icons.Default.Mic),
                     Triple("Historial", "history", Icons.Default.History)
                 )
@@ -54,10 +56,11 @@ class MainActivity : ComponentActivity() {
                     drawerState = drawerState,
                     drawerContent = {
                         ModalDrawerSheet {
-                            Text(
-                                "MorseXpress",
-                                style = MaterialTheme.typography.headlineSmall,
-                                modifier = Modifier.padding(16.dp)
+                            AnimatedOptionCard(
+                                iconRes = R.drawable.ic_morse,
+                                title = "MorseXpress",
+                                description = "Transforma texto, imágenes y audio a código Morse.",
+                                onClick = { scope.launch { drawerState.close() } }
                             )
                             Divider()
                             menuItems.forEach { (label, route, icon) ->
