@@ -2,6 +2,7 @@ package com.aria.morsexpress.presentation.screen.home
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Image
@@ -85,6 +86,19 @@ fun HomeScreen(navController: NavController) {
                         Icon(Icons.Default.Image, contentDescription = "Imagen")
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Entrada por Imagen")
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Camera Input
+                    Button(
+                        onClick = { navController.navigate(Routes.CAMERA_INPUT) },
+                        colors = transparentColors,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Default.Camera, contentDescription = "Cámara")
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Entrada por Cámara")
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))

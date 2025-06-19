@@ -27,7 +27,7 @@ import java.io.OutputStream
 import java.util.Date
 import java.util.Locale
 
-fun String.toMorse(): String {
+private fun String.toMorse(): String {
     val morseMap = mapOf(
         // Letters
         'A' to ".-", 'B' to "-...", 'C' to "-.-.", 'D' to "-..", 'E' to ".",
@@ -53,7 +53,7 @@ fun String.toMorse(): String {
     return this.uppercase().map { morseMap[it] ?: "" }.joinToString(" ")
 }
 
-fun String.toText(): String {
+private fun String.toText(): String {
     val reverseMap = mapOf(
         // Letters
         ".-" to 'A', "-..." to 'B', "-.-." to 'C', "-.." to 'D', "." to 'E',
@@ -85,7 +85,6 @@ fun ImageInputScreen(navController: NavController) {
     val context = LocalContext.current
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var recognizedText by remember { mutableStateOf<String?>(null) }
-    var recognizedMorse by remember { mutableStateOf<String?>(null) }
     var morseResult by remember { mutableStateOf<String?>(null) }
 
     val galleryLauncher = rememberLauncherForActivityResult(
@@ -197,19 +196,6 @@ fun ImageInputScreen(navController: NavController) {
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-
-            recognizedMorse?.let {
-                Text("Texto reconocido en Morse:", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(it)
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Button(onClick = {
-                    morseResult = it.toText()
-                }) {
-                    Text("Convertir a Texto")
-                }
-            }
 
             morseResult?.let {
                 Spacer(modifier = Modifier.height(16.dp))
