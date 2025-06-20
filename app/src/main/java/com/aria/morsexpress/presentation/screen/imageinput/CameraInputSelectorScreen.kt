@@ -61,7 +61,7 @@ fun CameraInputSelectorScreen(navController: NavController) {
             iconRes = R.drawable.ic_camera,
             title = "Captura de Imagen",
             description = "Captura una imagen directamente desde la cámara.",
-            onClick = {  } // Go to camera usage screen
+            onClick = { navController.navigate(Routes.CAMERA_CAPTURE) } // Go to camera usage screen
         )
     }
 }

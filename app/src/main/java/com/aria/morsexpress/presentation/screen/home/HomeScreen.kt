@@ -60,7 +60,7 @@ fun HomeScreen(navController: NavController) {
                 iconRes = R.drawable.ic_camera,
                 title = "Entrada por Imagen o Cámara",
                 description = "Inserta o toma una imágen o fotografía para analizar su contenido.",
-                onClick = { navController.navigate(Routes.CAMERA_CAPTURE) }
+                onClick = { navController.navigate(Routes.CAMERA_MENU) }
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -71,65 +71,6 @@ fun HomeScreen(navController: NavController) {
                 description = "Graba o selecciona un archivo de audio para traducirlo.",
                 onClick = {  }
             )
-
-//            Card(
-//                modifier = Modifier
-//                    .padding(24.dp)
-//                    .fillMaxWidth(),
-//                elevation = CardDefaults.cardElevation(8.dp)
-//            ) {
-//                Column(
-//                    modifier = Modifier
-//                        .padding(24.dp)
-//                        .fillMaxWidth(),
-//                    horizontalAlignment = Alignment.CenterHorizontally
-//                ) {
-//                    val textColor = MaterialTheme.colorScheme.onBackground
-//                    val transparentColors = ButtonDefaults.buttonColors(
-//                        containerColor = Color.Transparent,
-//                        contentColor = textColor
-//                    )
-//
-//                    // Text Input
-//                    Button(
-//                        onClick = { navController.navigate(Routes.TEXT_INPUT) },
-//                        colors = transparentColors,
-//                        modifier = Modifier.fillMaxWidth()
-//                    ) {
-//                        Icon(Icons.Default.Edit, contentDescription = "Texto")
-//                        Spacer(modifier = Modifier.width(8.dp))
-//                        Text("Entrada por Texto")
-//                    }
-//
-//
-//                    Spacer(modifier = Modifier.height(24.dp))
-//
-//                    // Camera Input
-//                    Button(
-//                        onClick = { navController.navigate(Routes.CAMERA_CAPTURE) },
-//                        colors = transparentColors,
-//                        modifier = Modifier.fillMaxWidth()
-//                    ) {
-//                        Icon(Icons.Default.Camera, contentDescription = "Cámara")
-//                        Spacer(modifier = Modifier.width(8.dp))
-//                        Text("Entrada por Imagen o Cámara")
-//                    }
-//
-//
-//                    Spacer(modifier = Modifier.height(16.dp))
-//
-//                    // Audio Input
-////                    Button(
-////                        onClick = { navController.navigate(Routes.AUDIO_INPUT) },
-////                        colors = transparentColors,
-////                        modifier = Modifier.fillMaxWidth()
-////                    ) {
-////                        Icon(Icons.Default.Image, contentDescription = "Audio")
-////                        Spacer(modifier = Modifier.width(8.dp))
-////                        Text("Entrada por Audio")
-//                    }
-//                }
-//            }
         }
     }
 }
