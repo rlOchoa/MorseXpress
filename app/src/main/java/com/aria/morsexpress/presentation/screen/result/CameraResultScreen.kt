@@ -3,6 +3,7 @@ package com.aria.morsexpress.presentation.screen.result
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -45,12 +46,17 @@ fun CameraResultScreen(
     var isLoading by remember { mutableStateOf(false) }
 
     LaunchedEffect(photoUri) {
-        photoUri?.let {
-            context.contentResolver.openInputStream(it)?.use { stream ->
-                bitmap = BitmapFactory.decodeStream(stream)
+        try {
+            photoUri?.let {
+                context.contentResolver.openInputStream(it)?.use { stream ->
+                    bitmap = BitmapFactory.decodeStream(stream)
+                }
             }
+        } catch (e: Exception) {
+            Log.e("CameraResultScreen", "Error al cargar imagen desde URI", e)
         }
     }
+
 
     suspend fun <T> Task<T>.await(): T =
         suspendCancellableCoroutine { continuation ->
@@ -91,44 +97,98 @@ fun CameraResultScreen(
                 .fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            bitmap?.let {
-                Image(
-                    bitmap = it.asImageBitmap(),
-                    contentDescription = "Foto Capturada",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(3f / 4f)
-                )
-            } ?: Text("No se pudo cargar la imagen.")
+            photoUri?.let {
+                if (bitmap != null) {
+                    Image(
+                        bitmap = bitmap!!.asImageBitmap(),
+                        contentDescription = "Foto Capturada",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(3f / 4f)
+                    )
+                } else {
+                    Text(
+                        text = "No se pudo cargar la imagen.",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            if (isLoading) {
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-            }
+            Text(
+                text = "¿Qué deseas hacer con esta imagen?",
+                style = MaterialTheme.typography.titleMedium
+            )
 
-            recognizedText?.let {
-                Text(
-                    text = "Texto detectado:\n$it",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
+            Spacer(modifier = Modifier.height(8.dp))
 
-            Button(
-                modifier = Modifier.fillMaxWidth(),
-                onClick = {
-                    bitmap?.let { bmp ->
-                        isLoading = true
-                        recognizedText = null
-                        coroutineScope.launch {
-                            recognizedText = recognizeTextFromImage(bmp)
-                            isLoading = false
-                        }
-                    }
-                }
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Analizar Imagen")
+                Button(
+                    onClick = {
+                        photoUri?.let {
+                            navController.navigate("ocr_screen/${Uri.encode(it.toString())}")
+                        }
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Detectar Texto")
+                }
+
+                Button(
+                    onClick = {
+                        photoUri?.let {
+                            navController.navigate("morse_recognition_screen/${Uri.encode(it.toString())}")
+                        }
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Detectar Morse")
+                }
             }
+
+            //Previous version of the code that displayed the image and recognized text
+//            bitmap?.let {
+//                Image(
+//                    bitmap = it.asImageBitmap(),
+//                    contentDescription = "Foto Capturada",
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .aspectRatio(3f / 4f)
+//                )
+//            } ?: Text("No se pudo cargar la imagen.")
+//
+//            Spacer(modifier = Modifier.height(16.dp))
+//
+//            if (isLoading) {
+//                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+//            }
+//
+//            recognizedText?.let {
+//                Text(
+//                    text = "Texto detectado:\n$it",
+//                    style = MaterialTheme.typography.bodyMedium
+//                )
+//            }
+//
+//            Button(
+//                modifier = Modifier.fillMaxWidth(),
+//                onClick = {
+//                    bitmap?.let { bmp ->
+//                        isLoading = true
+//                        recognizedText = null
+//                        coroutineScope.launch {
+//                            recognizedText = recognizeTextFromImage(bmp)
+//                            isLoading = false
+//                        }
+//                    }
+//                }
+//            ) {
+//                Text("Analizar Imagen")
+//            }
         }
     }
 }

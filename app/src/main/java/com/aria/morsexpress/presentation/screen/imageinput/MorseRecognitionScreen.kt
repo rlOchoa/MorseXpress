@@ -1,5 +1,6 @@
 package com.aria.morsexpress.presentation.screen.imageinput
 
+import android.net.Uri
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -11,7 +12,7 @@ import androidx.navigation.NavController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MorseRecognitionScreen(navController: NavController) {
+fun MorseRecognitionScreen(navController: NavController, photoUri: Uri?) {
     Scaffold(
         topBar = {
             TopAppBar(
