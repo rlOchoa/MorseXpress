@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.aria.morsexpress.R
 import com.aria.morsexpress.presentation.navigation.Routes
+import com.aria.morsexpress.presentation.screen.imageinput.AnimatedOptionCard
 import com.aria.morsexpress.presentation.screen.imageinput.AnimatedSectionTitle
 import kotlinx.coroutines.launch
 
@@ -29,86 +30,106 @@ fun HomeScreen(navController: NavController) {
         ) },
         bottomBar = {
             BottomAppBar {
-                // Area de Historial
-//                Button(
-//                    onClick = { navController.navigate(Routes.HISTORY) },
-//                    colors = ButtonDefaults.buttonColors(
-//                        containerColor = Color.Transparent,
-//                        contentColor = MaterialTheme.colorScheme.onBackground
-//                    ),
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .padding(12.dp)
-//                ) {
-//                    Icon(Icons.Default.History, contentDescription = "Historial")
-//                    Spacer(modifier = Modifier.width(8.dp))
-//                    Text("Ver Historial")
-//                }
+                AnimatedOptionCard(
+                    iconRes = R.drawable.ic_history,
+                    title = "Historial",
+                    description = "Revisa tus traducciones anteriores.",
+                    onClick = {  }
+                )
             }
         }
     ) { padding ->
-        Box(
+        Column(
             modifier = Modifier
-                .padding(padding)
+                .padding(24.dp)
                 .fillMaxSize(),
-            contentAlignment = Alignment.Center
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Card(
-                modifier = Modifier
-                    .padding(24.dp)
-                    .fillMaxWidth(),
-                elevation = CardDefaults.cardElevation(8.dp)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .padding(24.dp)
-                        .fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    val textColor = MaterialTheme.colorScheme.onBackground
-                    val transparentColors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Transparent,
-                        contentColor = textColor
-                    )
 
-                    // Text Input
-                    Button(
-                        onClick = { navController.navigate(Routes.TEXT_INPUT) },
-                        colors = transparentColors,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon(Icons.Default.Edit, contentDescription = "Texto")
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Entrada por Texto")
-                    }
+            AnimatedOptionCard(
+                iconRes = R.drawable.ic_pencil,
+                title = "Entrada por Texto",
+                description = "Escribe o pega texto para traducirlo.",
+                onClick = { navController.navigate(Routes.TEXT_INPUT) }
+            )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-                    // Camera Input
-                    Button(
-                        onClick = { navController.navigate(Routes.CAMERA_CAPTURE) },
-                        colors = transparentColors,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon(Icons.Default.Camera, contentDescription = "Cámara")
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Entrada por Imagen o Cámara")
-                    }
+            AnimatedOptionCard(
+                iconRes = R.drawable.ic_camera,
+                title = "Entrada por Imagen o Cámara",
+                description = "Inserta o toma una imágen o fotografía para analizar su contenido.",
+                onClick = { navController.navigate(Routes.CAMERA_CAPTURE) }
+            )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-                    // Audio Input
+            AnimatedOptionCard(
+                iconRes = R.drawable.ic_audio,
+                title = "Entrada por Audio",
+                description = "Graba o selecciona un archivo de audio para traducirlo.",
+                onClick = {  }
+            )
+
+//            Card(
+//                modifier = Modifier
+//                    .padding(24.dp)
+//                    .fillMaxWidth(),
+//                elevation = CardDefaults.cardElevation(8.dp)
+//            ) {
+//                Column(
+//                    modifier = Modifier
+//                        .padding(24.dp)
+//                        .fillMaxWidth(),
+//                    horizontalAlignment = Alignment.CenterHorizontally
+//                ) {
+//                    val textColor = MaterialTheme.colorScheme.onBackground
+//                    val transparentColors = ButtonDefaults.buttonColors(
+//                        containerColor = Color.Transparent,
+//                        contentColor = textColor
+//                    )
+//
+//                    // Text Input
 //                    Button(
-//                        onClick = { navController.navigate(Routes.AUDIO_INPUT) },
+//                        onClick = { navController.navigate(Routes.TEXT_INPUT) },
 //                        colors = transparentColors,
 //                        modifier = Modifier.fillMaxWidth()
 //                    ) {
-//                        Icon(Icons.Default.Image, contentDescription = "Audio")
+//                        Icon(Icons.Default.Edit, contentDescription = "Texto")
 //                        Spacer(modifier = Modifier.width(8.dp))
-//                        Text("Entrada por Audio")
+//                        Text("Entrada por Texto")
 //                    }
-                }
-            }
+//
+//
+//                    Spacer(modifier = Modifier.height(24.dp))
+//
+//                    // Camera Input
+//                    Button(
+//                        onClick = { navController.navigate(Routes.CAMERA_CAPTURE) },
+//                        colors = transparentColors,
+//                        modifier = Modifier.fillMaxWidth()
+//                    ) {
+//                        Icon(Icons.Default.Camera, contentDescription = "Cámara")
+//                        Spacer(modifier = Modifier.width(8.dp))
+//                        Text("Entrada por Imagen o Cámara")
+//                    }
+//
+//
+//                    Spacer(modifier = Modifier.height(16.dp))
+//
+//                    // Audio Input
+////                    Button(
+////                        onClick = { navController.navigate(Routes.AUDIO_INPUT) },
+////                        colors = transparentColors,
+////                        modifier = Modifier.fillMaxWidth()
+////                    ) {
+////                        Icon(Icons.Default.Image, contentDescription = "Audio")
+////                        Spacer(modifier = Modifier.width(8.dp))
+////                        Text("Entrada por Audio")
+//                    }
+//                }
+//            }
         }
     }
 }
