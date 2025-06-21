@@ -43,7 +43,7 @@ fun CameraInputSelectorScreen(navController: NavController) {
             iconRes = R.drawable.ic_ocr,
             title = "Texto a Morse",
             description = "Detecta texto desde una imagen y tradúcelo a código Morse.",
-            onClick = { navController.navigate("ocr_screen/{photoUri}") }
+            onClick = { navController.navigate("ocr_screen/null") }
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -52,7 +52,7 @@ fun CameraInputSelectorScreen(navController: NavController) {
             iconRes = R.drawable.ic_morse,
             title = "Morse a Texto",
             description = "Detecta patrones visuales de puntos y rayas y tradúcelos.",
-            onClick = { navController.navigate("morse_recognition_screen/{photoUri}") } // Go to Morse recognition screen
+            onClick = { navController.navigate("morse_recognition_screen/null") } // Go to Morse recognition screen
         )
 
         Spacer(modifier = Modifier.height(24.dp))

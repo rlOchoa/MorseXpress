@@ -94,10 +94,13 @@ fun TextInputScreen(
             convertTextToMorse(inputText.text)
         }
 
-        viewModel.saveTranslation(
-            input = inputText.text,
-            output = outputText,
-            inputType = if (isMorseToText) "Morse" else "Texto"
+        // Save the translation to the database
+        viewModel.insertTranslation(
+            originalText = inputText.text,
+            translatedText = outputText,
+            inputType = if (isMorseToText) "Texto" else "Morse",
+            inputPathOrContent = "", // Not applicable for text input
+            morseCode = if (isMorseToText) outputText else "" // Save morse code only if converting to text
         )
     }
 

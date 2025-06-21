@@ -22,8 +22,8 @@ object Routes {
     const val TEXT_INPUT = "text_input"
     const val CAMERA_MENU = "camera_input_screen"
     const val CAMERA_CAPTURE = "camera_capture_screen"
-//    const val OCR_SCREEN = "ocr_screen"
-//    const val MORSE_RECOGNITION = "morse_recognition_screen"
+    const val OCR_SCREEN = "ocr_screen"
+    const val MORSE_RECOGNITION = "morse_recognition_screen"
 }
 
 @Composable
@@ -45,17 +45,19 @@ fun MorseXpressNavGraph(navController: NavHostController = rememberNavController
         }
         composable(
             route = "ocr_screen/{photoUri}",
-            arguments = listOf(navArgument("photoUri") { type = NavType.StringType })
+            arguments = listOf(navArgument("photoUri") { type = NavType.StringType; nullable = true })
         ) { backStackEntry ->
-            val uri = Uri.parse(backStackEntry.arguments?.getString("photoUri"))
-            OcrScreen(navController, uri)
+            val uriString = backStackEntry.arguments?.getString("photoUri")
+            val uri = uriString?.let { Uri.parse(it) }
+            OcrScreen(navController, photoUri = uri)
         }
 
         composable(
             route = "morse_recognition_screen/{photoUri}",
-            arguments = listOf(navArgument("photoUri") { type = NavType.StringType })
+            arguments = listOf(navArgument("photoUri") { type = NavType.StringType; nullable = true })
         ) { backStackEntry ->
-            val uri = Uri.parse(backStackEntry.arguments?.getString("photoUri"))
+            val uriString = backStackEntry.arguments?.getString("photoUri")
+            val uri = uriString?.let { Uri.parse(it) }
             MorseRecognitionScreen(navController, uri) // puedes dejarlo en blanco de momento
         }
     }
