@@ -6,14 +6,33 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Image
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
@@ -29,11 +48,7 @@ import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.*
 import java.util.regex.Pattern
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,28 +66,21 @@ fun MorseRecognitionScreen(
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var recognizedMorse by remember { mutableStateOf("") }
     var translatedText by remember { mutableStateOf("") }
-    var bitmapState = remember { mutableStateOf<Bitmap?>(null) }
+    var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument(),
         onResult = { uri -> uri?.let { imageUri = it } }
     )
 
-    val imageBitmap = remember(photoUri) {
-        photoUri?.let {
+    val activeUri = photoUri ?: imageUri
+
+    LaunchedEffect(activeUri) {
+        activeUri?.let {
             val inputStream = context.contentResolver.openInputStream(it)
             val bitmap = BitmapFactory.decodeStream(inputStream)
             inputStream?.close()
-            bitmap
-        }
-    }
-
-    LaunchedEffect(imageUri) {
-        imageUri?.let {
-            val stream = context.contentResolver.openInputStream(it)
-            val bitmap = BitmapFactory.decodeStream(stream)
-            stream?.close()
-            bitmapState.value = bitmap
+            imageBitmap = bitmap
         }
     }
 
@@ -96,52 +104,10 @@ fun MorseRecognitionScreen(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            imageUri?.let {
-                bitmapState.value?.let { bmp ->
-                    Image(
-                        bitmap = bmp.asImageBitmap(),
-                        contentDescription = "Imagen seleccionada",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(240.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Button(onClick = {
-                    scope.launch {
-                        val result = runCatching {
-                            val ocrText = extractMorseFromImage(context, it)
-                            recognizedMorse = ocrText
-                            translatedText = ocrText.toText()
-                            viewModel.insertTranslation(
-                                originalText = ocrText,
-                                translatedText = translatedText,
-                                inputType = "MORSE_IMAGE",
-                                inputPathOrContent = it.toString(),
-                                morseCode = ocrText
-                            )
-                        }
-                        if (result.isFailure) {
-                            recognizedMorse = "No se pudo reconocer el patrón."
-                        }
-                    }
-                }) {
-                    Text("Traducir Morse Visual")
-                }
-            } ?: Button(onClick = {
-                galleryLauncher.launch(arrayOf("image/*"))
-            }) {
-                Icon(Icons.Default.Image, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Seleccionar imagen")
-            }
-
-            imageBitmap?.let {
+            if (activeUri != null && imageBitmap != null) {
                 Image(
-                    bitmap = it.asImageBitmap(),
-                    contentDescription = "Imagen Morse",
+                    bitmap = imageBitmap!!.asImageBitmap(),
+                    contentDescription = "Imagen seleccionada",
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(240.dp)
@@ -152,14 +118,14 @@ fun MorseRecognitionScreen(
                 Button(onClick = {
                     scope.launch {
                         val result = runCatching {
-                            val ocrText = extractMorseFromImage(context, photoUri!!)
+                            val ocrText = extractMorseFromImage(context, activeUri)
                             recognizedMorse = ocrText
                             translatedText = ocrText.toText()
                             viewModel.insertTranslation(
                                 originalText = ocrText,
                                 translatedText = translatedText,
                                 inputType = "MORSE_IMAGE",
-                                inputPathOrContent = photoUri.toString(),
+                                inputPathOrContent = activeUri.toString(),
                                 morseCode = ocrText
                             )
                         }
@@ -170,7 +136,13 @@ fun MorseRecognitionScreen(
                 }) {
                     Text("Traducir Morse Visual")
                 }
-            } ?: Text("No se ha seleccionado imagen")
+            } else {
+                Button(onClick = { galleryLauncher.launch(arrayOf("image/*")) }) {
+                    Icon(Icons.Default.Image, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Seleccionar imagen")
+                }
+            }
 
             if (recognizedMorse.isNotBlank()) {
                 Spacer(modifier = Modifier.height(16.dp))
@@ -234,5 +206,5 @@ private fun String.toText(): String {
         // Latin Accents
         "-.---" to 'Á', "..-.." to 'É', "..---" to 'Í', "---." to 'Ó', "..-" to 'Ú'
     )
-    return this.trim().split(" ").map { reverseMap[it] ?: '?'}.joinToString("")
+    return this.trim().split(" ").map { reverseMap[it] ?: '?' }.joinToString("")
 }
