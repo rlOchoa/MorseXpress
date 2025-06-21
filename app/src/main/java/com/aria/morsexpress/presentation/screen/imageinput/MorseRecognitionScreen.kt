@@ -162,23 +162,29 @@ fun MorseRecognitionScreen(
 private suspend fun extractMorseFromImage(context: android.content.Context, uri: Uri): String {
     val inputImage = InputImage.fromFilePath(context, uri)
     val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+    val morseRegex = Regex("[.\\-/•·–—]+")  // acepta diferentes formas de puntos y rayas
 
     return suspendCancellableCoroutine { continuation ->
         recognizer.process(inputImage)
             .addOnSuccessListener { visionText ->
-                val raw = visionText.text
-                val cleaned = raw.trim().replace("\\s+".toRegex(), " ")
-                val morsePattern = Pattern.compile("[.-]+|/|")
-                val matcher = morsePattern.matcher(cleaned)
-                val extracted = buildString {
-                    while (matcher.find()) {
-                        append(matcher.group()).append(" ")
+                val rawText = visionText.text
+                val lines = rawText.split("\n")
+
+                val matches = lines.flatMap { line ->
+                    morseRegex.findAll(line).map { match ->
+                        match.value.replace("•", ".")
+                            .replace("·", ".")
+                            .replace("–", "-")
+                            .replace("—", "-")
+                            .replace("\\s+".toRegex(), "")
                     }
-                }.trim()
-                continuation.resume(extracted, onCancellation = null)
+                }
+
+                val filtered = matches.joinToString(" ").trim()
+                continuation.resume(filtered, null)
             }
             .addOnFailureListener {
-                continuation.resume("", onCancellation = null)
+                continuation.resume("", null)
             }
     }
 }
