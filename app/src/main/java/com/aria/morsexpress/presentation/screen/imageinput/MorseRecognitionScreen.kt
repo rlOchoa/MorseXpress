@@ -210,7 +210,7 @@ private fun String.toText(): String {
         ".-.-." to '+', "-....-" to '-', "..--.-" to '_', ".-..-." to '"',
         "...-..-" to '$', ".--.-." to '@',
         // Latin Accents
-        "-.---" to 'Á', "..-.." to 'É', "..---" to 'Í', "---." to 'Ó', "..-" to 'Ú'
+        "-.---" to 'Á', "..-.." to 'É', "..---" to 'Í', "---." to 'Ó'
     )
     return this.trim().split(" ").map { reverseMap[it] ?: '?' }.joinToString("")
 }

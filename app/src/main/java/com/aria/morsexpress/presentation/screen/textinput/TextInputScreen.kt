@@ -82,7 +82,7 @@ fun TextInputScreen(
             ".-.-." to '+', "-....-" to '-', "..--.-" to '_', ".-..-." to '"',
             "...-..-" to '$', ".--.-." to '@',
             // Latin Accents
-            "-.---" to 'Á', "..-.." to 'É', "..---" to 'Í', "---." to 'Ó', "..-" to 'Ú'
+            "-.---" to 'Á', "..-.." to 'É', "..---" to 'Í', "---." to 'Ó'
         )
         return morse.trim().split(" ").map { reverseMap[it] ?: '?' }.joinToString("")
     }
