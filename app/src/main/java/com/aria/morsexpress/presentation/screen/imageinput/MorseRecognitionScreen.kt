@@ -24,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -44,6 +45,8 @@ import androidx.navigation.NavController
 import com.aria.morsexpress.data.local.database.AppDatabase
 import com.aria.morsexpress.presentation.viewmodel.TranslationViewModel
 import com.aria.morsexpress.presentation.viewmodel.TranslationViewModelFactory
+import com.aria.morsexpress.util.RobustMorseDetector
+import com.aria.morsexpress.util.VisualMorseAnalyzer
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
@@ -115,27 +118,55 @@ fun MorseRecognitionScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+
+                var settings by remember { mutableStateOf(VisualMorseAnalyzer.Settings()) }
+
+                MorseSettingsControls(settings = settings, onChange = { settings = it })
+
+                // Visual Analysis with: Bitmapping, GrayScale, Binarization, and Morse Detection
                 Button(onClick = {
                     scope.launch {
-                        val result = runCatching {
-                            val ocrText = extractMorseFromImage(context, activeUri)
-                            recognizedMorse = ocrText
-                            translatedText = ocrText.toText()
+                        if (imageBitmap != null) {
+                            val rawMorse = VisualMorseAnalyzer.analyze(imageBitmap!!, settings)
+                            recognizedMorse = rawMorse
+                            translatedText = rawMorse.toText()
                             viewModel.insertTranslation(
-                                originalText = ocrText,
+                                originalText = rawMorse,
                                 translatedText = translatedText,
                                 inputType = "MORSE_IMAGE",
                                 inputPathOrContent = activeUri.toString(),
-                                morseCode = ocrText
+                                morseCode = rawMorse
                             )
-                        }
-                        if (result.isFailure) {
-                            recognizedMorse = "No se pudo reconocer el patrón."
+                        } else {
+                            recognizedMorse = "No se detectó imagen"
                         }
                     }
                 }) {
                     Text("Traducir Morse Visual")
                 }
+
+                // Regex Try
+//                Button(onClick = {
+//                    scope.launch {
+//                        val result = runCatching {
+//                            val ocrText = extractMorseFromImage(context, activeUri)
+//                            recognizedMorse = ocrText
+//                            translatedText = ocrText.toText()
+//                            viewModel.insertTranslation(
+//                                originalText = ocrText,
+//                                translatedText = translatedText,
+//                                inputType = "MORSE_IMAGE",
+//                                inputPathOrContent = activeUri.toString(),
+//                                morseCode = ocrText
+//                            )
+//                        }
+//                        if (result.isFailure) {
+//                            recognizedMorse = "No se pudo reconocer el patrón."
+//                        }
+//                    }
+//                }) {
+//                    Text("Traducir Morse Visual")
+//                }
             } else {
                 Button(onClick = { galleryLauncher.launch(arrayOf("image/*")) }) {
                     Icon(Icons.Default.Image, contentDescription = null)
@@ -159,35 +190,22 @@ fun MorseRecognitionScreen(
     }
 }
 
-private suspend fun extractMorseFromImage(context: android.content.Context, uri: Uri): String {
-    val inputImage = InputImage.fromFilePath(context, uri)
-    val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-    val morseRegex = Regex("[.\\-/•·–—]+")  // acepta diferentes formas de puntos y rayas
-
-    return suspendCancellableCoroutine { continuation ->
-        recognizer.process(inputImage)
-            .addOnSuccessListener { visionText ->
-                val rawText = visionText.text
-                val lines = rawText.split("\n")
-
-                val matches = lines.flatMap { line ->
-                    morseRegex.findAll(line).map { match ->
-                        match.value.replace("•", ".")
-                            .replace("·", ".")
-                            .replace("–", "-")
-                            .replace("—", "-")
-                            .replace("\\s+".toRegex(), "")
-                    }
-                }
-
-                val filtered = matches.joinToString(" ").trim()
-                continuation.resume(filtered, null)
-            }
-            .addOnFailureListener {
-                continuation.resume("", null)
-            }
-    }
-}
+//private suspend fun extractMorseFromImage(context: android.content.Context, uri: Uri): String {
+//    val inputImage = InputImage.fromFilePath(context, uri)
+//    val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+//
+//    return suspendCancellableCoroutine { continuation ->
+//        recognizer.process(inputImage)
+//            .addOnSuccessListener { visionText ->
+//                val rawText = visionText.text
+//                val extracted = RobustMorseDetector.extractMorseLines(rawText)
+//                continuation.resume(extracted, null)
+//            }
+//            .addOnFailureListener {
+//                continuation.resume("", null)
+//            }
+//    }
+//}
 
 private fun String.toText(): String {
     val reverseMap = mapOf(
@@ -213,4 +231,61 @@ private fun String.toText(): String {
         "-.---" to 'Á', "..-.." to 'É', "..---" to 'Í', "---." to 'Ó'
     )
     return this.trim().split(" ").map { reverseMap[it] ?: '?' }.joinToString("")
+}
+
+@Composable
+fun MorseSettingsControls(
+    settings: VisualMorseAnalyzer.Settings,
+    onChange: (VisualMorseAnalyzer.Settings) -> Unit
+) {
+    Column {
+        Text("Configuración de Análisis", style = MaterialTheme.typography.titleMedium)
+        Spacer(modifier = Modifier.height(8.dp))
+
+        SettingSlider("Umbral binarización", settings.threshold.toFloat(), 0f, 255f) {
+            onChange(settings.copy(threshold = it.toInt()))
+        }
+
+        SettingSlider("Tamaño máximo punto", settings.dotMaxLength.toFloat(), 1f, 20f) {
+            onChange(settings.copy(dotMaxLength = it.toInt()))
+        }
+
+        SettingSlider("Tamaño mínimo raya", settings.dashMinLength.toFloat(), 1f, 30f) {
+            onChange(settings.copy(dashMinLength = it.toInt()))
+        }
+
+        SettingSlider("Espacio letra mínimo", settings.letterSpaceMinLength.toFloat(), 1f, 20f) {
+            onChange(settings.copy(letterSpaceMinLength = it.toInt()))
+        }
+
+        SettingSlider("Espacio palabra mínimo", settings.wordSpaceMinLength.toFloat(), 5f, 50f) {
+            onChange(settings.copy(wordSpaceMinLength = it.toInt()))
+        }
+
+        SettingSlider("Saltos entre líneas", settings.scanStep.toFloat(), 1f, 20f) {
+            onChange(settings.copy(scanStep = it.toInt()))
+        }
+
+        SettingSlider("Líneas a escanear", settings.linesToScan.toFloat(), 1f, 10f) {
+            onChange(settings.copy(linesToScan = it.toInt()))
+        }
+    }
+}
+
+@Composable
+fun SettingSlider(
+    label: String,
+    value: Float,
+    valueRangeStart: Float,
+    valueRangeEnd: Float,
+    onValueChange: (Float) -> Unit
+) {
+    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+        Text("$label: ${value.toInt()}", style = MaterialTheme.typography.bodyMedium)
+        Slider(
+            value = value,
+            onValueChange = onValueChange,
+            valueRange = valueRangeStart..valueRangeEnd
+        )
+    }
 }
