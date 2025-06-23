@@ -53,6 +53,7 @@ import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.util.regex.Pattern
+import com.aria.morsexpress.util.OpenCvMorseAnalyzer
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -70,6 +71,8 @@ fun MorseRecognitionScreen(
     var recognizedMorse by remember { mutableStateOf("") }
     var translatedText by remember { mutableStateOf("") }
     var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
+
+    var config by remember { mutableStateOf(OpenCvMorseAnalyzer.MorseConfig()) }
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument(),
@@ -118,16 +121,27 @@ fun MorseRecognitionScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // Visual Analysis with OpenCV
+                SettingSlider("Umbral", config.threshold.toFloat(), 0f, 255f) {
+                    config = config.copy(threshold = it.toInt())
+                }
+                SettingSlider("Máx. punto", config.dotMaxWidth.toFloat(), 1f, 20f) {
+                    config = config.copy(dotMaxWidth = it.toInt())
+                }
+                SettingSlider("Mín. raya", config.dashMinWidth.toFloat(), 5f, 40f) {
+                    config = config.copy(dashMinWidth = it.toInt())
+                }
+                SettingSlider("Espacio letra", config.letterSpaceMinGap.toFloat(), 1f, 50f) {
+                    config = config.copy(letterSpaceMinGap = it.toInt())
+                }
+                SettingSlider("Espacio palabra", config.wordSpaceMinGap.toFloat(), 10f, 100f) {
+                    config = config.copy(wordSpaceMinGap = it.toInt())
+                }
 
-                var settings by remember { mutableStateOf(VisualMorseAnalyzer.Settings()) }
-
-                MorseSettingsControls(settings = settings, onChange = { settings = it })
-
-                // Visual Analysis with: Bitmapping, GrayScale, Binarization, and Morse Detection
                 Button(onClick = {
                     scope.launch {
                         if (imageBitmap != null) {
-                            val rawMorse = VisualMorseAnalyzer.analyze(imageBitmap!!, settings)
+                            val rawMorse = OpenCvMorseAnalyzer.analyzeMorseFromBitmap(imageBitmap!!, config)
                             recognizedMorse = rawMorse
                             translatedText = rawMorse.toText()
                             viewModel.insertTranslation(
@@ -142,8 +156,34 @@ fun MorseRecognitionScreen(
                         }
                     }
                 }) {
-                    Text("Traducir Morse Visual")
+                    Text("Analizar con OpenCV")
                 }
+
+                // Visual Analysis with: Bitmapping, GrayScale, Binarization, and Morse Detection
+//                var settings by remember { mutableStateOf(VisualMorseAnalyzer.Settings()) }
+
+//                MorseSettingsControls(settings = settings, onChange = { settings = it })
+
+//                Button(onClick = {
+//                    scope.launch {
+//                        if (imageBitmap != null) {
+//                            val rawMorse = VisualMorseAnalyzer.analyze(imageBitmap!!, settings)
+//                            recognizedMorse = rawMorse
+//                            translatedText = rawMorse.toText()
+//                            viewModel.insertTranslation(
+//                                originalText = rawMorse,
+//                                translatedText = translatedText,
+//                                inputType = "MORSE_IMAGE",
+//                                inputPathOrContent = activeUri.toString(),
+//                                morseCode = rawMorse
+//                            )
+//                        } else {
+//                            recognizedMorse = "No se detectó imagen"
+//                        }
+//                    }
+//                }) {
+//                    Text("Traducir Morse Visual")
+//                }
 
                 // Regex Try
 //                Button(onClick = {

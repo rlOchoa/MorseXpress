@@ -31,5 +31,4 @@ gradle.rootProject {
 }
 
 rootProject.name = "MorseXpress"
-include(":app")
- 
+include(":app", ":sdk")
