@@ -1,10 +1,10 @@
 package com.aria.morsexpress.util
 
 import android.graphics.Bitmap
-import org.opencv.core.Mat
-import org.opencv.imgproc.Imgproc
 import org.opencv.android.Utils
+import org.opencv.core.Mat
 import org.opencv.core.MatOfPoint
+import org.opencv.imgproc.Imgproc
 
 object OpenCvMorseAnalyzer {
 
@@ -30,7 +30,13 @@ object OpenCvMorseAnalyzer {
         // 4. Buscar contornos horizontales
         val contours = mutableListOf<MatOfPoint>()
         val hierarchy = Mat()
-        Imgproc.findContours(mat, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE)
+        Imgproc.findContours(
+            mat,
+            contours,
+            hierarchy,
+            Imgproc.RETR_EXTERNAL,
+            Imgproc.CHAIN_APPROX_SIMPLE
+        )
 
         // 5. Clasificar los contornos como punto o raya
         val sortedContours = contours.sortedBy { Imgproc.boundingRect(it).x }

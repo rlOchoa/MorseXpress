@@ -21,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Translate
+import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -34,7 +35,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -227,7 +227,7 @@ fun OcrScreen(navController: NavController, photoUri: Uri? = null) {
                     viewModel.insertTranslation(
                         originalText = it,
                         translatedText = morse,
-                        inputType = "Imagen",
+                        inputType = "OCR",
                         inputPathOrContent = imageUri?.toString() ?: "desconocido",
                         morseCode = morse
                     )
@@ -245,9 +245,12 @@ fun OcrScreen(navController: NavController, photoUri: Uri? = null) {
                 Text(it)
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(onClick = {
-                    val date = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+                    val date =
+                        SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
                     createFileLauncher.launch("morse_$date.txt")
                 }) {
+                    Icon(Icons.Default.Upload, contentDescription = "Exportar")
+                    Spacer(Modifier.width(8.dp))
                     Text("Exportar como .txt")
                 }
             }

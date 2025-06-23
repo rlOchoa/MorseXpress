@@ -1,40 +1,42 @@
 package com.aria.morsexpress.presentation.screen.home
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Camera
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material3.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.aria.morsexpress.R
 import com.aria.morsexpress.presentation.navigation.Routes
 import com.aria.morsexpress.presentation.screen.imageinput.AnimatedOptionCard
 import com.aria.morsexpress.presentation.screen.imageinput.AnimatedSectionTitle
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController) {
     Scaffold(
-        topBar = { AnimatedSectionTitle(
-            iconRes = R.drawable.ic_morse,
-            title = "MorseXpress",
-            iconRes2 = R.drawable.ic_morse
-        ) },
+        topBar = {
+            AnimatedSectionTitle(
+                iconRes = R.drawable.ic_morse,
+                title = "MorseXpress",
+                iconRes2 = R.drawable.ic_morse
+            )
+        },
         bottomBar = {
             BottomAppBar {
                 AnimatedOptionCard(
                     iconRes = R.drawable.ic_history,
                     title = "Historial",
                     description = "Revisa tus traducciones anteriores.",
-                    onClick = {  }
+                    onClick = { navController.navigate(Routes.HISTORY_SCREEN) }
                 )
             }
         }
@@ -69,7 +71,7 @@ fun HomeScreen(navController: NavController) {
                 iconRes = R.drawable.ic_audio,
                 title = "Entrada por Audio",
                 description = "Graba o selecciona un archivo de audio para traducirlo.",
-                onClick = {  }
+                onClick = { }
             )
         }
     }

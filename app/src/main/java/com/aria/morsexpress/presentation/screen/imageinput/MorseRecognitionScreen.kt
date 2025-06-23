@@ -18,6 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -46,15 +47,9 @@ import com.aria.morsexpress.data.local.database.AppDatabase
 import com.aria.morsexpress.presentation.viewmodel.TranslationViewModel
 import com.aria.morsexpress.presentation.viewmodel.TranslationViewModelFactory
 import com.aria.morsexpress.util.OpenCVHelper
-import com.aria.morsexpress.util.RobustMorseDetector
-import com.aria.morsexpress.util.VisualMorseAnalyzer
-import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.text.TextRecognition
-import com.google.mlkit.vision.text.latin.TextRecognizerOptions
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
-import java.util.regex.Pattern
 import com.aria.morsexpress.util.OpenCvMorseAnalyzer
+import com.aria.morsexpress.util.VisualMorseAnalyzer
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -148,7 +143,8 @@ fun MorseRecognitionScreen(
                     Button(onClick = {
                         scope.launch {
                             val bitmap = imageBitmap ?: return@launch
-                            val rawMorse = OpenCvMorseAnalyzer.analyzeMorseFromBitmap(bitmap, config)
+                            val rawMorse =
+                                OpenCvMorseAnalyzer.analyzeMorseFromBitmap(bitmap, config)
                             recognizedMorse = rawMorse
                             translatedText = rawMorse.toText()
                             viewModel.insertTranslation(
@@ -160,6 +156,8 @@ fun MorseRecognitionScreen(
                             )
                         }
                     }) {
+                        Icon(Icons.Default.Translate, contentDescription = "Traducir")
+                        Spacer(Modifier.width(8.dp))
                         Text("Analizar con OpenCV")
                     }
                 } else {
@@ -192,6 +190,8 @@ fun MorseRecognitionScreen(
 //                        }
 //                    }
 //                }) {
+//                    Icon(Icons.Default.Translate, contentDescription = "Traducir")
+//                    Spacer(Modifier.width(8.dp))
 //                    Text("Traducir Morse Visual")
 //                }
 
@@ -215,6 +215,8 @@ fun MorseRecognitionScreen(
 //                        }
 //                    }
 //                }) {
+//                    Icon(Icons.Default.Translate, contentDescription = "Traducir")
+//                    Spacer(Modifier.width(8.dp))
 //                    Text("Traducir Morse Visual")
 //                }
             } else {
@@ -330,7 +332,11 @@ fun SettingSlider(
     valueRangeEnd: Float,
     onValueChange: (Float) -> Unit
 ) {
-    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+    ) {
         Text("$label: ${value.toInt()}", style = MaterialTheme.typography.bodyMedium)
         Slider(
             value = value,

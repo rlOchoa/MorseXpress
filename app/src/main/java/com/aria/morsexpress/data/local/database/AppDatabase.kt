@@ -4,22 +4,21 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.aria.morsexpress.data.local.dao.HistoryDao
 import com.aria.morsexpress.data.local.dao.TranslationDao
 import com.aria.morsexpress.data.local.entity.HistoryEntity
 import com.aria.morsexpress.data.local.entity.TranslationEntity
 
 @Database(
     entities = [TranslationEntity::class, HistoryEntity::class],
-    version = 1,
-    exportSchema = false
+    version = 2,
+    exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun translationDao(): TranslationDao
-    abstract fun historyDao(): HistoryDao
 
     companion object {
-        @Volatile private var INSTANCE: AppDatabase? = null
+        @Volatile
+        private var INSTANCE: AppDatabase? = null
 
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
@@ -27,7 +26,7 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "morsexpress_db"
-                ).build().also { INSTANCE = it }
+                ).fallbackToDestructiveMigration(true).build().also { INSTANCE = it }
             }
         }
     }

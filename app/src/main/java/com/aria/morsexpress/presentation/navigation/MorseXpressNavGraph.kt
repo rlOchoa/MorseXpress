@@ -2,20 +2,21 @@ package com.aria.morsexpress.presentation.navigation
 
 import android.net.Uri
 import androidx.compose.runtime.Composable
+import androidx.core.net.toUri
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.aria.morsexpress.presentation.screen.history.HistoryScreen
 import com.aria.morsexpress.presentation.screen.home.HomeScreen
-import com.aria.morsexpress.presentation.screen.textinput.TextInputScreen
-import com.aria.morsexpress.presentation.screen.imageinput.CameraLivePreviewScreen
 import com.aria.morsexpress.presentation.screen.imageinput.CameraInputSelectorScreen
-import com.aria.morsexpress.presentation.screen.imageinput.OcrScreen
+import com.aria.morsexpress.presentation.screen.imageinput.CameraLivePreviewScreen
 import com.aria.morsexpress.presentation.screen.imageinput.MorseRecognitionScreen
+import com.aria.morsexpress.presentation.screen.imageinput.OcrScreen
 import com.aria.morsexpress.presentation.screen.result.CameraResultScreen
-import androidx.core.net.toUri
+import com.aria.morsexpress.presentation.screen.textinput.TextInputScreen
 
 object Routes {
     const val HOME = "home"
@@ -24,6 +25,7 @@ object Routes {
     const val CAMERA_CAPTURE = "camera_capture_screen"
     const val OCR_SCREEN = "ocr_screen"
     const val MORSE_RECOGNITION = "morse_recognition_screen"
+    const val HISTORY_SCREEN = "history_screen"
 }
 
 @Composable
@@ -45,7 +47,9 @@ fun MorseXpressNavGraph(navController: NavHostController = rememberNavController
         }
         composable(
             route = "ocr_screen/{photoUri}",
-            arguments = listOf(navArgument("photoUri") { type = NavType.StringType; nullable = true })
+            arguments = listOf(navArgument("photoUri") {
+                type = NavType.StringType; nullable = true
+            })
         ) { backStackEntry ->
             val uriString = backStackEntry.arguments?.getString("photoUri")
             val uri = uriString?.let { Uri.parse(it) }
@@ -54,11 +58,14 @@ fun MorseXpressNavGraph(navController: NavHostController = rememberNavController
 
         composable(
             route = "morse_recognition_screen/{photoUri}",
-            arguments = listOf(navArgument("photoUri") { type = NavType.StringType; nullable = true })
+            arguments = listOf(navArgument("photoUri") {
+                type = NavType.StringType; nullable = true
+            })
         ) { backStackEntry ->
             val uriString = backStackEntry.arguments?.getString("photoUri")
             val uri = uriString?.let { Uri.parse(it) }
             MorseRecognitionScreen(navController, uri) // puedes dejarlo en blanco de momento
         }
+        composable(Routes.HISTORY_SCREEN) { HistoryScreen() }
     }
 }

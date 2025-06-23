@@ -126,4 +126,7 @@ dependencies {
     // OpenCV
     implementation(project(":sdk"))
     implementation(files("../sdk/libs/opencv-android.aar"))
+
+    // Coil for image loading
+    implementation("io.coil-kt:coil-compose:2.4.0")
 }

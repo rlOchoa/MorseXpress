@@ -9,5 +9,6 @@ data class HistoryEntity(
     val originalText: String,
     val translatedText: String,
     val inputType: String, // "text", "image", "audio"
+    val imageBase64: String?,
     val timestamp: Long = System.currentTimeMillis()
 )

@@ -105,6 +105,7 @@ object VisualMorseAnalyzer {
                     else -> "-" // Si está entre dot y dash, consideramos raya
                 }
             }
+
             Color.WHITE -> {
                 when {
                     length >= settings.wordSpaceMinLength -> " / "
@@ -112,6 +113,7 @@ object VisualMorseAnalyzer {
                     else -> "" // espacio menor, ignorar
                 }
             }
+
             else -> ""
         }
     }

@@ -1,6 +1,10 @@
 package com.aria.morsexpress.data.local.dao
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
 import com.aria.morsexpress.data.local.entity.HistoryEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -22,10 +26,12 @@ interface HistoryDao {
     @Query("SELECT * FROM translation_history WHERE inputType = :type ORDER BY timestamp ASC")
     fun getHistoryByType(type: String): Flow<List<HistoryEntity>>
 
-    @Query("""
+    @Query(
+        """
         SELECT * FROM translation_history 
         WHERE originalText LIKE '%' || :query || '%' OR translatedText LIKE '%' || :query || '%' 
         ORDER BY timestamp ASC
-    """)
+    """
+    )
     fun searchHistory(query: String): Flow<List<HistoryEntity>>
 }
