@@ -1,9 +1,10 @@
 package com.aria.morsexpress.util
 
 import android.graphics.Bitmap
-import org.opencv.core.*
+import org.opencv.core.Mat
 import org.opencv.imgproc.Imgproc
 import org.opencv.android.Utils
+import org.opencv.core.MatOfPoint
 
 object OpenCvMorseAnalyzer {
 

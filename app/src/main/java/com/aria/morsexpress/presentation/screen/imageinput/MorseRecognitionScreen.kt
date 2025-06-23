@@ -45,6 +45,7 @@ import androidx.navigation.NavController
 import com.aria.morsexpress.data.local.database.AppDatabase
 import com.aria.morsexpress.presentation.viewmodel.TranslationViewModel
 import com.aria.morsexpress.presentation.viewmodel.TranslationViewModelFactory
+import com.aria.morsexpress.util.OpenCVHelper
 import com.aria.morsexpress.util.RobustMorseDetector
 import com.aria.morsexpress.util.VisualMorseAnalyzer
 import com.google.mlkit.vision.common.InputImage
@@ -73,6 +74,7 @@ fun MorseRecognitionScreen(
     var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
     var config by remember { mutableStateOf(OpenCvMorseAnalyzer.MorseConfig()) }
+    var isOpenCVReady by remember { mutableStateOf(false) }
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument(),
@@ -80,6 +82,10 @@ fun MorseRecognitionScreen(
     )
 
     val activeUri = photoUri ?: imageUri
+
+    LaunchedEffect(Unit) {
+        isOpenCVReady = OpenCVHelper.initOpenCV(context)
+    }
 
     LaunchedEffect(activeUri) {
         activeUri?.let {
@@ -122,26 +128,27 @@ fun MorseRecognitionScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Visual Analysis with OpenCV
-                SettingSlider("Umbral", config.threshold.toFloat(), 0f, 255f) {
-                    config = config.copy(threshold = it.toInt())
-                }
-                SettingSlider("Máx. punto", config.dotMaxWidth.toFloat(), 1f, 20f) {
-                    config = config.copy(dotMaxWidth = it.toInt())
-                }
-                SettingSlider("Mín. raya", config.dashMinWidth.toFloat(), 5f, 40f) {
-                    config = config.copy(dashMinWidth = it.toInt())
-                }
-                SettingSlider("Espacio letra", config.letterSpaceMinGap.toFloat(), 1f, 50f) {
-                    config = config.copy(letterSpaceMinGap = it.toInt())
-                }
-                SettingSlider("Espacio palabra", config.wordSpaceMinGap.toFloat(), 10f, 100f) {
-                    config = config.copy(wordSpaceMinGap = it.toInt())
-                }
+                if (isOpenCVReady) {
+                    SettingSlider("Umbral", config.threshold.toFloat(), 0f, 255f) {
+                        config = config.copy(threshold = it.toInt())
+                    }
+                    SettingSlider("Máx. punto", config.dotMaxWidth.toFloat(), 1f, 20f) {
+                        config = config.copy(dotMaxWidth = it.toInt())
+                    }
+                    SettingSlider("Mín. raya", config.dashMinWidth.toFloat(), 5f, 40f) {
+                        config = config.copy(dashMinWidth = it.toInt())
+                    }
+                    SettingSlider("Espacio letra", config.letterSpaceMinGap.toFloat(), 1f, 50f) {
+                        config = config.copy(letterSpaceMinGap = it.toInt())
+                    }
+                    SettingSlider("Espacio palabra", config.wordSpaceMinGap.toFloat(), 10f, 100f) {
+                        config = config.copy(wordSpaceMinGap = it.toInt())
+                    }
 
-                Button(onClick = {
-                    scope.launch {
-                        if (imageBitmap != null) {
-                            val rawMorse = OpenCvMorseAnalyzer.analyzeMorseFromBitmap(imageBitmap!!, config)
+                    Button(onClick = {
+                        scope.launch {
+                            val bitmap = imageBitmap ?: return@launch
+                            val rawMorse = OpenCvMorseAnalyzer.analyzeMorseFromBitmap(bitmap, config)
                             recognizedMorse = rawMorse
                             translatedText = rawMorse.toText()
                             viewModel.insertTranslation(
@@ -151,12 +158,15 @@ fun MorseRecognitionScreen(
                                 inputPathOrContent = activeUri.toString(),
                                 morseCode = rawMorse
                             )
-                        } else {
-                            recognizedMorse = "No se detectó imagen"
                         }
+                    }) {
+                        Text("Analizar con OpenCV")
                     }
-                }) {
-                    Text("Analizar con OpenCV")
+                } else {
+                    Text(
+                        text = "OpenCV no se pudo inicializar.",
+                        color = MaterialTheme.colorScheme.error
+                    )
                 }
 
                 // Visual Analysis with: Bitmapping, GrayScale, Binarization, and Morse Detection

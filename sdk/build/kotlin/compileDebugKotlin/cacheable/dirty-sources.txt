@@ -1,2 +1,0 @@
-C:\MorseXpress\sdk\java\src\org\opencv\core\MatAt.kt
-C:\MorseXpress\sdk\java\src\org\opencv\core\MatMatMul.kt

@@ -1,0 +1,3 @@
+C:/MorseXpress/sdk/.cxx/RelWithDebInfo/1t4o5m53/x86/CMakeFiles/opencv_jni_shared.dir
+C:/MorseXpress/sdk/.cxx/RelWithDebInfo/1t4o5m53/x86/CMakeFiles/edit_cache.dir
+C:/MorseXpress/sdk/.cxx/RelWithDebInfo/1t4o5m53/x86/CMakeFiles/rebuild_cache.dir
