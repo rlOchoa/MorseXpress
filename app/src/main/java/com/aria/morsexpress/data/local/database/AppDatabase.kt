@@ -4,12 +4,19 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.aria.morsexpress.data.local.dao.HistoryDao
 import com.aria.morsexpress.data.local.dao.TranslationDao
+import com.aria.morsexpress.data.local.entity.HistoryEntity
 import com.aria.morsexpress.data.local.entity.TranslationEntity
 
-@Database(entities = [TranslationEntity::class], version = 1)
+@Database(
+    entities = [TranslationEntity::class, HistoryEntity::class],
+    version = 1,
+    exportSchema = false
+)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun translationDao(): TranslationDao
+    abstract fun historyDao(): HistoryDao
 
     companion object {
         @Volatile private var INSTANCE: AppDatabase? = null
