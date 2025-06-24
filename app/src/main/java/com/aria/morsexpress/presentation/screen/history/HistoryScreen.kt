@@ -162,7 +162,7 @@ fun HistoryItem(entity: TranslationEntity, onDelete: () -> Unit) {
 
 @Composable
 fun FilterChips(filterType: String, onFilterSelected: (String) -> Unit) {
-    val options = listOf("TODOS", "TEXT", "OCR", "MORSE_IMAGE", "AUDIO")
+    val options = listOf("TODOS", "TEXT", "MORSE", "OCR", "MORSE_IMAGE", "AUDIO")
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier.padding(top = 8.dp)
