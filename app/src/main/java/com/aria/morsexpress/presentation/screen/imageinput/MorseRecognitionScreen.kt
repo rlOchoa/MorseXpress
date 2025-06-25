@@ -2,11 +2,14 @@ package com.aria.morsexpress.presentation.screen.imageinput
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.icu.text.SimpleDateFormat
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Translate
+import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -50,6 +54,9 @@ import com.aria.morsexpress.util.OpenCVHelper
 import com.aria.morsexpress.util.OpenCvMorseAnalyzer
 import com.aria.morsexpress.util.VisualMorseAnalyzer
 import kotlinx.coroutines.launch
+import java.io.OutputStream
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,6 +81,22 @@ fun MorseRecognitionScreen(
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument(),
         onResult = { uri -> uri?.let { imageUri = it } }
+    )
+
+    val createFileLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("text/plain"), onResult = { uri: Uri? ->
+            uri?.let {
+                try {
+                    val outputStream: OutputStream? = context.contentResolver.openOutputStream(it)
+                    outputStream?.bufferedWriter()?.use { writer ->
+                        writer.write("Morse Reconocido:\n$recognizedMorse\n\nTexto Traducido:\n$translatedText")
+                    }
+                    Toast.makeText(context, "Archivo exportado", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    Toast.makeText(context, "Error al exportar archivo", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     )
 
     val activeUri = photoUri ?: imageUri
@@ -101,6 +124,44 @@ fun MorseRecognitionScreen(
                     }
                 }
             )
+        }, bottomBar = {
+            Row {
+                if(isOpenCVReady) {
+                    Button(onClick = {
+                        scope.launch {
+                            val bitmap = imageBitmap ?: return@launch
+                            val rawMorse =
+                                OpenCvMorseAnalyzer.analyzeMorseFromBitmap(bitmap, config)
+                            recognizedMorse = rawMorse
+                            translatedText = rawMorse.toText()
+                            viewModel.insertTranslation(
+                                originalText = rawMorse,
+                                translatedText = translatedText,
+                                inputType = "MORSE_IMAGE",
+                                inputPathOrContent = activeUri.toString(),
+                                morseCode = rawMorse
+                            )
+                            Toast.makeText(context, "Guardado en historial", Toast.LENGTH_SHORT).show()
+                        }
+                    }) {
+                        Icon(Icons.Default.Translate, contentDescription = "Traducir")
+                        Spacer(Modifier.width(8.dp))
+                        Text("Analizar con OpenCV")
+                    }
+                }
+
+                if (translatedText.isNotBlank()) {
+                    Button(onClick = {
+                        val date =
+                            SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+                        createFileLauncher.launch("imagen_morse_texto$date.txt")
+                    }) {
+                        Icon(Icons.Default.Upload, contentDescription = "Exportar")
+                        Spacer(Modifier.width(8.dp))
+                        Text("Exportar como .txt")
+                    }
+                }
+            }
         }
     ) { padding ->
         Column(
@@ -140,26 +201,7 @@ fun MorseRecognitionScreen(
                         config = config.copy(wordSpaceMinGap = it.toInt())
                     }
 
-                    Button(onClick = {
-                        scope.launch {
-                            val bitmap = imageBitmap ?: return@launch
-                            val rawMorse =
-                                OpenCvMorseAnalyzer.analyzeMorseFromBitmap(bitmap, config)
-                            recognizedMorse = rawMorse
-                            translatedText = rawMorse.toText()
-                            viewModel.insertTranslation(
-                                originalText = rawMorse,
-                                translatedText = translatedText,
-                                inputType = "MORSE_IMAGE",
-                                inputPathOrContent = activeUri.toString(),
-                                morseCode = rawMorse
-                            )
-                        }
-                    }) {
-                        Icon(Icons.Default.Translate, contentDescription = "Traducir")
-                        Spacer(Modifier.width(8.dp))
-                        Text("Analizar con OpenCV")
-                    }
+
                 } else {
                     Text(
                         text = "OpenCV no se pudo inicializar.",
@@ -195,7 +237,7 @@ fun MorseRecognitionScreen(
 //                    Text("Traducir Morse Visual")
 //                }
 
-                // Regex Try
+                // Regex
 //                Button(onClick = {
 //                    scope.launch {
 //                        val result = runCatching {

@@ -1,7 +1,0 @@
-org.opencv.sdk-pngs-0 C:\MorseXpress\sdk\build\generated\res\pngs\release
-org.opencv.sdk-resValues-1 C:\MorseXpress\sdk\build\generated\res\resValues\release
-org.opencv.sdk-mergeReleaseResources-2 C:\MorseXpress\sdk\build\intermediates\incremental\release\mergeReleaseResources\merged.dir
-org.opencv.sdk-mergeReleaseResources-3 C:\MorseXpress\sdk\build\intermediates\incremental\release\mergeReleaseResources\stripped.dir
-org.opencv.sdk-release-4 C:\MorseXpress\sdk\build\intermediates\merged_res\release\mergeReleaseResources
-org.opencv.sdk-main-5 C:\MorseXpress\sdk\src\main\res
-org.opencv.sdk-release-6 C:\MorseXpress\sdk\src\release\res

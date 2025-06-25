@@ -1,6 +1,7 @@
 package com.aria.morsexpress.presentation.screen.textinput
 
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -164,6 +165,7 @@ fun TextInputScreen(
                         inputPathOrContent = "",
                         morseCode = if (isMorseToText) inputText.text else outputText
                     )
+                    Toast.makeText(context, "Guardado en historial", Toast.LENGTH_SHORT).show()
                 }) {
                     Icon(Icons.Default.Translate, contentDescription = "Traducir")
                     Spacer(Modifier.width(8.dp))

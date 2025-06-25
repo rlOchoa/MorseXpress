@@ -9,6 +9,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -77,8 +78,7 @@ fun OcrScreen(navController: NavController, photoUri: Uri? = null) {
     )
 
     val createFileLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.CreateDocument("text/plain"),
-        onResult = { uri: Uri? ->
+        contract = ActivityResultContracts.CreateDocument("text/plain"), onResult = { uri: Uri? ->
             uri?.let {
                 try {
                     val outputStream: OutputStream? = context.contentResolver.openOutputStream(it)
@@ -103,13 +103,11 @@ fun OcrScreen(navController: NavController, photoUri: Uri? = null) {
             bitmap?.let { bmp ->
                 val image = InputImage.fromBitmap(bmp, 0)
                 val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-                recognizer.process(image)
-                    .addOnSuccessListener { visionText ->
-                        resultTextState.value = visionText.text
-                    }
-                    .addOnFailureListener {
-                        resultTextState.value = "Error al procesar la imagen"
-                    }
+                recognizer.process(image).addOnSuccessListener { visionText ->
+                    resultTextState.value = visionText.text
+                }.addOnFailureListener {
+                    resultTextState.value = "Error al procesar la imagen"
+                }
             }
         }
     }
@@ -121,14 +119,12 @@ fun OcrScreen(navController: NavController, photoUri: Uri? = null) {
             inputStream?.use {
                 val bitmap = BitmapFactory.decodeStream(it)
                 val inputImage = InputImage.fromBitmap(bitmap, 0)
-                recognizer.process(inputImage)
-                    .addOnSuccessListener { visionText ->
-                        recognizedText = visionText.text
-                        morseTranslation = null
-                    }
-                    .addOnFailureListener {
-                        recognizedText = "Error al procesar la imagen."
-                    }
+                recognizer.process(inputImage).addOnSuccessListener { visionText ->
+                    recognizedText = visionText.text
+                    morseTranslation = null
+                }.addOnFailureListener {
+                    recognizedText = "Error al procesar la imagen."
+                }
             }
         }
     }
@@ -136,22 +132,84 @@ fun OcrScreen(navController: NavController, photoUri: Uri? = null) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("OCR desde Imagen") },
+                title = {
+                    Text("OCR desde Imagen")
+                },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(
+                        onClick = {
+                            navController.popBackStack()
+                        }
+                    ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
                     }
+                })
+        }, bottomBar = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+            ) {
+                if (recognizedText != null) {
+                    recognizedText?.let {
+                        Button(onClick = {
+                            val morse = it.toMorse()
+                            morseTranslation = morse
+                            viewModel.insertTranslation(
+                                originalText = it,
+                                translatedText = morse,
+                                inputType = "OCR",
+                                inputPathOrContent = imageUri?.toString() ?: "desconocido",
+                                morseCode = morse
+                            )
+                            Toast.makeText(context, "Guardado en historial", Toast.LENGTH_SHORT)
+                                .show()
+                        }) {
+                            Icon(Icons.Default.Translate, contentDescription = "Traducir")
+                            Spacer(Modifier.width(8.dp))
+                            Text("Traducir a Morse")
+                        }
+                    }
+                } else if (resultTextState.value.isNotBlank()) {
+                    Button(onClick = {
+                        val morse = resultTextState.value.toMorse()
+                        morseTranslation = morse
+//                    morseTranslation = resultTextState.value.toMorse()
+//                    morseTranslation?.let { morse ->
+                        viewModel.insertTranslation(
+                            originalText = resultTextState.value,
+                            translatedText = morse,
+                            inputType = "OCR",
+                            inputPathOrContent = photoUri?.toString() ?: "desconocido",
+                            morseCode = morse
+                        )
+                        Toast.makeText(context, "Guardado en historial", Toast.LENGTH_SHORT).show()
+                    }) {
+                        Icon(Icons.Default.Translate, contentDescription = "Traducir")
+                        Spacer(Modifier.width(8.dp))
+                        Text("Traducir a Morse")
+                    }
                 }
-            )
-        }
-    ) { padding ->
+
+                if (morseTranslation != null) {
+                    Button(onClick = {
+                        val date =
+                            SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+                        createFileLauncher.launch("imagen_texto_morse_$date.txt")
+                    }) {
+                        Icon(Icons.Default.Upload, contentDescription = "Exportar")
+                        Spacer(Modifier.width(8.dp))
+                        Text("Exportar como .txt")
+                    }
+                }
+            }
+        }) { padding ->
         Column(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally
         ) {
             imageUriState.value?.let {
                 bitmapState.value?.let { bmp ->
@@ -176,25 +234,7 @@ fun OcrScreen(navController: NavController, photoUri: Uri? = null) {
                 Text(text = "Texto reconocido:", style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(resultTextState.value)
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(onClick = {
-                    val morse = resultTextState.value.toMorse()
-                    morseTranslation = morse
-//                    morseTranslation = resultTextState.value.toMorse()
-//                    morseTranslation?.let { morse ->
-                    viewModel.insertTranslation(
-                        originalText = resultTextState.value,
-                        translatedText = morse,
-                        inputType = "OCR",
-                        inputPathOrContent = photoUri?.toString() ?: "desconocido",
-                        morseCode = morse
-                    )
-                    Toast.makeText(context, "Guardado en historial", Toast.LENGTH_SHORT).show()
-                }) {
-                    Icon(Icons.Default.Translate, contentDescription = "Traducir")
-                    Spacer(Modifier.width(8.dp))
-                    Text("Traducir a Morse")
-                }
+                Spacer(modifier = Modifier.height(8.dp))
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -218,90 +258,87 @@ fun OcrScreen(navController: NavController, photoUri: Uri? = null) {
                 Text("Texto reconocido:", style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(it)
-
-                Spacer(modifier = Modifier.height(16.dp))
-                // Reemplaza este bloque dentro del onClick del botón "Traducir a Morse"
-                Button(onClick = {
-                    val morse = it.toMorse()
-                    morseTranslation = morse
-                    viewModel.insertTranslation(
-                        originalText = it,
-                        translatedText = morse,
-                        inputType = "OCR",
-                        inputPathOrContent = imageUri?.toString() ?: "desconocido",
-                        morseCode = morse
-                    )
-                    Toast.makeText(context, "Guardado en historial", Toast.LENGTH_SHORT).show()
-                }) {
-                    Icon(Icons.Default.Translate, contentDescription = "Traducir")
-                    Spacer(Modifier.width(8.dp))
-                    Text("Traducir a Morse")
-                }
+                Spacer(modifier = Modifier.height(8.dp))
             }
 
             morseTranslation?.let {
                 Text("Resultado en Morse:", style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(it)
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(onClick = {
-                    val date =
-                        SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-                    createFileLauncher.launch("morse_$date.txt")
-                }) {
-                    Icon(Icons.Default.Upload, contentDescription = "Exportar")
-                    Spacer(Modifier.width(8.dp))
-                    Text("Exportar como .txt")
-                }
             }
         }
-        /* Old code
-            Button(onClick = { galleryLauncher.launch(arrayOf("image/*")) }) {
-                Text("Seleccionar Imagen")
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            imageUri?.let {
-                val bitmap = context.contentResolver.openInputStream(it)?.use { stream ->
-                    BitmapFactory.decodeStream(stream)
-                }
-                bitmap?.let {
-                    Image(
-                        bitmap = it.asImageBitmap(),
-                        contentDescription = "Imagen seleccionada",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Spacer(modifier = Modifier.height(16.dp))
-        */*/
     }
 }
 
 private fun String.toMorse(): String {
     val morseMap = mapOf(
         // Letters
-        'A' to ".-", 'B' to "-...", 'C' to "-.-.", 'D' to "-..", 'E' to ".",
-        'F' to "..-.", 'G' to "--.", 'H' to "....", 'I' to "..", 'J' to ".---",
-        'K' to "-.-", 'L' to ".-..", 'M' to "--", 'N' to "-.", 'Ñ' to "--.--",
-        'O' to "---", 'P' to ".--.", 'Q' to "--.-", 'R' to ".-.", 'S' to "...",
-        'T' to "-", 'U' to "..-", 'V' to "...-", 'W' to ".--", 'X' to "-..-",
-        'Y' to "-.--", 'Z' to "--..",
+        'A' to ".-",
+        'B' to "-...",
+        'C' to "-.-.",
+        'D' to "-..",
+        'E' to ".",
+        'F' to "..-.",
+        'G' to "--.",
+        'H' to "....",
+        'I' to "..",
+        'J' to ".---",
+        'K' to "-.-",
+        'L' to ".-..",
+        'M' to "--",
+        'N' to "-.",
+        'Ñ' to "--.--",
+        'O' to "---",
+        'P' to ".--.",
+        'Q' to "--.-",
+        'R' to ".-.",
+        'S' to "...",
+        'T' to "-",
+        'U' to "..-",
+        'V' to "...-",
+        'W' to ".--",
+        'X' to "-..-",
+        'Y' to "-.--",
+        'Z' to "--..",
         // Numbers
-        '0' to "-----", '1' to ".----", '2' to "..---", '3' to "...--", '4' to "....-",
-        '5' to ".....", '6' to "-....", '7' to "--...", '8' to "---..", '9' to "----.",
+        '0' to "-----",
+        '1' to ".----",
+        '2' to "..---",
+        '3' to "...--",
+        '4' to "....-",
+        '5' to ".....",
+        '6' to "-....",
+        '7' to "--...",
+        '8' to "---..",
+        '9' to "----.",
         // Spaces
-        ' ' to "/", '\n' to "\n",
+        ' ' to "/",
+        '\n' to "\n",
         // Punctuation
-        '.' to ".-.-.-", ',' to "--..--", '?' to "..--..", '\'' to ".----.",
-        '!' to "-.-.--", '/' to "-..-.", '(' to "-.--.", ')' to "-.--.-",
-        '&' to ".-...", ':' to "---...", ';' to "-.-.-.", '=' to "-...-",
-        '+' to ".-.-.", '-' to "-....-", '_' to "..--.-", '"' to ".-..-.",
-        '$' to "...-..-", '@' to ".--.-.",
+        '.' to ".-.-.-",
+        ',' to "--..--",
+        '?' to "..--..",
+        '\'' to ".----.",
+        '!' to "-.-.--",
+        '/' to "-..-.",
+        '(' to "-.--.",
+        ')' to "-.--.-",
+        '&' to ".-...",
+        ':' to "---...",
+        ';' to "-.-.-.",
+        '=' to "-...-",
+        '+' to ".-.-.",
+        '-' to "-....-",
+        '_' to "..--.-",
+        '"' to ".-..-.",
+        '$' to "...-..-",
+        '@' to ".--.-.",
         // Latin Accents
-        'Á' to ".-.-", 'É' to "..-..", 'Í' to "..--", 'Ó' to "---.", 'Ú' to "..-"
+        'Á' to ".-.-",
+        'É' to "..-..",
+        'Í' to "..--",
+        'Ó' to "---.",
+        'Ú' to "..-"
     )
     return this.uppercase().map { morseMap[it] ?: "" }.joinToString(" ")
 }
