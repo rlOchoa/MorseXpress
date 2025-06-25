@@ -71,7 +71,7 @@ fun HomeScreen(navController: NavController) {
                 iconRes = R.drawable.ic_audio,
                 title = "Entrada por Audio",
                 description = "Graba o selecciona un archivo de audio para traducirlo.",
-                onClick = { }
+                onClick = { navController.navigate(Routes.AUDIO_SCREEN) }
             )
         }
     }

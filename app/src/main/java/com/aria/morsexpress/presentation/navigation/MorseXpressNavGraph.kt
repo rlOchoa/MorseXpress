@@ -17,26 +17,34 @@ import com.aria.morsexpress.presentation.screen.imageinput.MorseRecognitionScree
 import com.aria.morsexpress.presentation.screen.imageinput.OcrScreen
 import com.aria.morsexpress.presentation.screen.result.CameraResultScreen
 import com.aria.morsexpress.presentation.screen.textinput.TextInputScreen
+import com.aria.morsexpress.presentation.screen.audioinput.AudioInputScreen
 
 object Routes {
     const val HOME = "home"
-    const val TEXT_INPUT = "text_input"
+    const val TEXT_INPUT = "text_input_screen"
     const val CAMERA_MENU = "camera_input_screen"
     const val CAMERA_CAPTURE = "camera_capture_screen"
     const val OCR_SCREEN = "ocr_screen"
     const val MORSE_RECOGNITION = "morse_recognition_screen"
     const val HISTORY_SCREEN = "history_screen"
+    const val AUDIO_SCREEN = "audio_input_screen"
 }
 
 @Composable
 fun MorseXpressNavGraph(navController: NavHostController = rememberNavController()) {
     NavHost(navController = navController, startDestination = Routes.HOME) {
         composable(Routes.HOME) { HomeScreen(navController) }
+
         composable(Routes.TEXT_INPUT) { TextInputScreen(navController) }
+
         composable(Routes.CAMERA_MENU) { CameraInputSelectorScreen(navController) }
+
         composable(Routes.CAMERA_CAPTURE) { CameraLivePreviewScreen(navController) }
+
 //        composable(Routes.OCR_SCREEN) { OcrScreen(navController) }
+
 //        composable(Routes.MORSE_RECOGNITION) { MorseRecognitionScreen(navController) }
+
         composable(
             route = "camera_result_screen/{photoUri}",
             arguments = listOf(navArgument("photoUri") { type = NavType.StringType })
@@ -66,6 +74,9 @@ fun MorseXpressNavGraph(navController: NavHostController = rememberNavController
             val uri = uriString?.let { Uri.parse(it) }
             MorseRecognitionScreen(navController, uri) // puedes dejarlo en blanco de momento
         }
+
         composable(Routes.HISTORY_SCREEN) { HistoryScreen() }
+
+        composable(Routes.AUDIO_SCREEN) { AudioInputScreen(navController) }
     }
 }

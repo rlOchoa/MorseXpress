@@ -63,9 +63,9 @@ class MainActivity : ComponentActivity() {
 
                 val menuItems = listOf(
                     Triple("Inicio", "home", Icons.Default.Home),
-                    Triple("Texto", "text_input", Icons.Default.Edit),
+                    Triple("Texto", "text_input_screen", Icons.Default.Edit),
                     Triple("Imagen o Cámara", "camera_input_screen", Icons.Default.Camera),
-                    Triple("Audio", "audio_screen", Icons.Default.Mic),
+                    Triple("Audio", "audio_input_screen", Icons.Default.Mic),
                     Triple("Historial", "history_screen", Icons.Default.History)
                 )
 
