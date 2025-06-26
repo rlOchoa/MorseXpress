@@ -72,18 +72,14 @@ object MorseCodeTranslator {
         'O' to "---", 'P' to ".--.", 'Q' to "--.-", 'R' to ".-.", 'S' to "...",
         'T' to "-", 'U' to "..-", 'V' to "...-", 'W' to ".--", 'X' to "-..-",
         'Y' to "-.--", 'Z' to "--..",
-        // Numbers
         '0' to "-----", '1' to ".----", '2' to "..---", '3' to "...--", '4' to "....-",
         '5' to ".....", '6' to "-....", '7' to "--...", '8' to "---..", '9' to "----.",
-        // Spaces
         ' ' to "/", '\n' to "\n",
-        // Punctuation
         '.' to ".-.-.-", ',' to "--..--", '?' to "..--..", '\'' to ".----.",
         '!' to "-.-.--", '/' to "-..-.", '(' to "-.--.", ')' to "-.--.-",
         '&' to ".-...", ':' to "---...", ';' to "-.-.-.", '=' to "-...-",
         '+' to ".-.-.", '-' to "-....-", '_' to "..--.-", '"' to ".-..-.",
         '$' to "...-..-", '@' to ".--.-.",
-        // Latin Accents
         'Á' to ".-.-", 'É' to "..-..", 'Í' to "..--", 'Ó' to "---."
     )
 
@@ -96,8 +92,8 @@ object MorseCodeTranslator {
     }
 
     fun toText(morse: String): String {
-        return morse.trim().split(" ").mapNotNull {
-            inverseMorseMap[it]
-        }.joinToString("")
+        return morse.trim().split(" / ").joinToString(" ") { word ->
+            word.split(" ").mapNotNull { code -> inverseMorseMap[code] }.joinToString("")
+        }
     }
 }

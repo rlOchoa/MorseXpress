@@ -1,140 +1,68 @@
 package com.aria.morsexpress.util
 
-import android.media.MediaExtractor
-import android.media.MediaFormat
-import java.io.InputStream
 import kotlin.math.abs
 
 object MorseAudioAnalyzer {
 
-    data class AudioAnalysisResult(
-        val morseCode: String,
-        val peakDurations: List<Long>
-    )
+    private const val THRESHOLD_PERCENTILE = 1  // percentil para detectar señal
+    private const val DOT_DASH_RATIO = 3.0
+    private const val INTER_SYMBOL_RATIO = 1.0
+    private const val LETTER_GAP_RATIO = 3.0
+    private const val WORD_GAP_RATIO = 7.0
 
-    fun extractMorseFromAudio(pcm: ShortArray, sampleRate: Int): String {
-        val amplitudes = pcm.map { it.toInt().toDouble() }
-        return analyzeAmplitudes(amplitudes, sampleRate)
-    }
+    fun extractMorseFromAudio(samples: ShortArray, sampleRate: Int): String {
+        val threshold = computeDynamicThreshold(samples)
+        val segments = segmentAudio(samples, threshold, sampleRate)
 
-    // Función real que analiza InputStream de audio
-//    fun analyzeAudio(
-//        inputStream: InputStream,
-//        sampleRate: Int = 44100, // usar valor default si no se detecta
-//        threshold: Int = 2000
-//    ): AudioAnalysisResult {
-//        // Convertimos el input stream a arreglo de bytes
-//        val audioBytes = inputStream.readBytes()
-//
-//        // Convertimos los bytes a shortArray
-//        val samples = ShortArray(audioBytes.size / 2)
-//        for (i in samples.indices) {
-//            val low = audioBytes[i * 2].toInt() and 0xff
-//            val high = audioBytes[i * 2 + 1].toInt()
-//            samples[i] = ((high shl 8) or low).toShort()
-//        }
-//
-//        return analyzeAmplitudes(
-//            samples = samples,
-//            sampleRate = sampleRate,
-//            threshold = threshold
-//        )
-//    }
+        val tones = segments.filter { it.isTone }
+        val toneDurations = tones.map { it.durationMs }
 
-    fun analyzeAmplitudes(amplitudes: List<Double>, sampleRate: Int): String {
-        val threshold = amplitudes.maxOrNull()?.times(0.5) ?: return ""
-        val unitTime = sampleRate / 10 // aprox. 100ms
+        if (toneDurations.isEmpty()) return ""
 
-        val binarySequence = amplitudes.map { if (it > threshold) 1 else 0 }
+        val sortedDurations = toneDurations.sorted()
+        val dotDuration = sortedDurations[(sortedDurations.size * 0.1).toInt()]  // percentil 10
 
-        val morseBuilder = StringBuilder()
-        var i = 0
-        while (i < binarySequence.size) {
-            val bit = binarySequence[i]
-            var length = 1
-            while (i + length < binarySequence.size && binarySequence[i + length] == bit) {
-                length++
-            }
+        val dashThreshold = dotDuration * DOT_DASH_RATIO
 
-            val duration = length.toDouble() / sampleRate
-            if (bit == 1) {
-                morseBuilder.append(
-                    when {
-                        duration < 0.2 -> "."  // dot
-                        duration < 0.5 -> "-"  // dash
-                        else -> {}
-                    }
+        val sb = StringBuilder()
+        for ((isTone, duration) in segments) {
+            if (isTone) {
+                sb.append(
+                    if (duration < dashThreshold) "." else "-"
                 )
             } else {
-                morseBuilder.append(
-                    when {
-                        duration in 0.2..0.5 -> " "     // space between letters
-                        duration >= 0.5 -> "   "        // space between words
-                        else -> {}                      // ignore short silence
-                    }
-                )
+                when {
+                    duration >= dotDuration * WORD_GAP_RATIO -> sb.append(" / ")
+                    duration >= dotDuration * LETTER_GAP_RATIO -> sb.append(" ")
+                    // silencios cortos se ignoran (espacio entre símbolos)
+                }
             }
-            i += length
         }
 
-        return morseBuilder.toString().trim()
+        return sb.toString().replace(Regex("\\s+"), " ").trim()
     }
 
-    // Función alternativa que analiza un arreglo de muestras PCM
-//    fun analyzeAmplitudes(
-//        samples: ShortArray,
-//        sampleRate: Int,
-//        threshold: Int = 2000,
-//        minSilenceDurationMs: Long = 200,
-//        dotMaxDurationMs: Long = 150,
-//        dashMinDurationMs: Long = 250
-//    ): AudioAnalysisResult {
-//        val morseBuilder = StringBuilder()
-//        val durations = mutableListOf<Long>()
-//
-//        val msPerSample = 1000.0 / sampleRate
-//        var inPeak = false
-//        var durationMs = 0.0
-//        var lastWasPeak = false
-//
-//        for (sample in samples) {
-//            val amplitude = abs(sample.toInt())
-//
-//            if (amplitude > threshold) {
-//                if (!inPeak) {
-//                    inPeak = true
-//                    if (!lastWasPeak) {
-//                        // Fin de silencio
-//                        if (durationMs > minSilenceDurationMs) {
-//                            morseBuilder.append(" / ") // espacio entre palabras
-//                        } else if (durationMs > dotMaxDurationMs) {
-//                            morseBuilder.append(" ") // espacio entre letras
-//                        }
-//                        durations.add(durationMs.toLong())
-//                    }
-//                    durationMs = 0.0
-//                }
-//            } else {
-//                if (inPeak) {
-//                    inPeak = false
-//                    // Fin de tono
-//                    if (durationMs < dotMaxDurationMs) {
-//                        morseBuilder.append(".")
-//                    } else if (durationMs >= dashMinDurationMs) {
-//                        morseBuilder.append("-")
-//                    }
-//                    durations.add(durationMs.toLong())
-//                    durationMs = 0.0
-//                }
-//            }
-//
-//            durationMs += msPerSample
-//            lastWasPeak = inPeak
-//        }
-//
-//        return AudioAnalysisResult(
-//            morseCode = morseBuilder.toString().trim(),
-//            peakDurations = durations
-//        )
-//    }
+    private fun computeDynamicThreshold(samples: ShortArray): Int {
+        val absSamples: List<Int> = samples.map { abs(it.toInt()) }
+        val peak = absSamples.maxOrNull() ?: 30000
+        return (peak * 0.25).toInt() // usar 25% del pico real
+    }
+
+    private fun segmentAudio(samples: ShortArray, threshold: Int, sampleRate: Int): List<AudioSegment> {
+        val segments = mutableListOf<AudioSegment>()
+        var i = 0
+        while (i < samples.size) {
+            val isTone = abs(samples[i].toInt()) >= threshold
+            var count = 0
+            while (i < samples.size && (abs(samples[i].toInt()) >= threshold) == isTone) {
+                count++
+                i++
+            }
+            val durationMs = (count / sampleRate.toDouble()) * 1000
+            segments.add(AudioSegment(isTone, durationMs.toInt()))
+        }
+        return segments
+    }
+
+    private data class AudioSegment(val isTone: Boolean, val durationMs: Int)
 }
